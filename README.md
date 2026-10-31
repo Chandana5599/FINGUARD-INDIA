@@ -1,56 +1,105 @@
-# FinGuard India — React + TypeScript + Express + MySQL
+# FinGuard India
+
+**An AI-powered financial risk analysis platform** designed to help identify potential financial stress in Indian banks using RBI financial data and explainable risk indicators.
+
+## Technology Stack
+- Frontend: React + TypeScript + Vite
+- Backend: Node.js + Express + TypeScript
+- Database: MySQL 8
+- Data processing: Python
 
 ## Requirements
 - Node.js 20.19+ (or Node.js 22+)
 - MySQL 8.0+
 - VS Code
 
-## 1. Create MySQL database
-Run `database/schema.sql` in MySQL Workbench, or:
+## 1. Create MySQL Database
+
+Run `database/schema.sql` in MySQL Workbench, or use:
 
 ```bash
 mysql -u root -p < database/schema.sql
 ```
 
-## 2. Start backend
+## 2. Start Backend
+
 ```bash
 cd backend
+```
+
+Create your environment file:
+
+```bash
 cp .env.example .env
 ```
-Edit `backend/.env` with your MySQL username/password. Then:
+
+Configure your MySQL credentials in `backend/.env`. Then run:
+
 ```bash
 npm install
 npm run seed
 npm run dev
 ```
-The importer uses the 80 original bank-year records extracted from the supplied RBI workbook, **not** fake seed values. The original workbook is at `dataset/RBI_FY22_FY25.xlsx`; a lossless numeric extraction of the financial columns is at `dataset/rbi_records.json`.
 
-## 3. Start React frontend (second terminal)
-From the project root:
+The application uses 80 annual bank records covering 20 banks from FY22 to FY25.
+
+## 3. Start Frontend
+
+Open a second terminal in the project root:
+
 ```bash
 npm install
 npm run dev
 ```
+
 Open http://localhost:5173
 
-## Test
-- `http://localhost:4000/api/health` → `ok:true` after DB connection
-- `http://localhost:4000/api/banks` → 20 banks with 4 years each
-- `cd backend && npm run typecheck`
-- `npm run typecheck` from project root
+## API Endpoints
 
-## What is calculated
-- Net NPA = closing net NPA / advances × 100
-- CAR = RBI-published total CRAR
-- ROA = net profit / year-end assets × 100
-- NIM = net interest income / year-end assets × 100
-- PCR = (closing gross NPA − closing net NPA) / closing gross NPA × 100
-- Cost-to-income = operating expenses / (net interest income + other income) × 100
-- Debt/equity = borrowings / (capital + reserves)
+- `/api/health` – Checks backend and database connectivity.
+- `/api/banks` – Returns bank information and financial records.
+- `/api/banks/:id` – Returns details for an individual bank.
+- `/api/compare` – Compares two banks.
+- `/api/risk` – Calculates an illustrative risk assessment.
 
-Health score uses the project's explicit weighted min/max normalisation in `backend/src/engine.ts`. The workbook's weight mapping is Net NPA 25%, CAR 20%, ROA 15%, NIM 10%, LCR 10%, cost-to-income 10%, debt/equity 5%, PCR 5%. Missing LCR is *not imputed*; its 10% is proportionally redistributed among available indicators. Scoring thresholds and Safe/Caution/Risky labels are **project heuristics**, not official RBI ratings.
+## Financial Indicators
 
-Trajectory is the difference between FY22 and FY25 computed scores: >2 = Improving, <-2 = Deteriorating, otherwise Stable. No forecast is claimed. Historical source is annual; no fabricated quarters.
+FinGuard India currently evaluates banks using seven indicators:
 
-## Scope and limits
-20 banks × FY22–FY25 = 80 annual observations. All 80 LCR entries are missing in the workbook. No bank-failure event labels exist, so the app cannot honestly provide validated failure probabilities or future financial projections. Deposit insurance illustrations are generic, not personalized eligibility determinations. Watchlist is stored in browser localStorage. The reference ZIP's Firebase auth and generative chatbot were intentionally not used: the project runs locally without cloud credentials and does not generate ungrounded claims.
+- **Net NPA:** Net bad loans compared to total advances.
+- **Capital Adequacy Ratio (CAR):** Measures the bank's capital strength.
+- **Return on Assets (ROA):** Measures how efficiently assets generate profit.
+- **Net Interest Margin (NIM):** Measures earnings from lending activities.
+- **Provision Coverage Ratio (PCR):** Measures how much of gross bad loans are covered by provisions.
+- **Cost-to-Income Ratio:** Measures operating expenses against income.
+- **Debt-to-Equity:** Indicates the relationship between borrowings and equity.
+
+Liquidity Coverage Ratio (LCR) is excluded because it is unavailable in the source dataset. The remaining seven indicators are reweighted to a total of 100%.
+
+## Risk Assessment
+
+The platform calculates a weighted score using the indicator thresholds defined in `backend/src/engine.ts`.
+
+The score and risk categories are project-level analytical indicators, not official RBI ratings or guaranteed predictions of bank failure.
+
+Historical trajectory compares FY22 and FY25 scores. It does not claim to forecast future performance.
+
+## Dataset and Scope
+
+- 20 banks
+- 4 financial years (FY22–FY25)
+- 80 annual observations
+- RBI-based financial data
+- Missing LCR values are not treated as zero.
+
+## Project Limitations
+
+FinGuard India is an early-warning analysis tool, not a financial guarantee or a substitute for professional financial advice.
+
+The available historical dataset does not contain verified bank-failure labels. Therefore, the platform does not claim validated bank-failure probabilities.
+
+Deposit insurance illustrations are indicative and are not personalized eligibility determinations.
+
+## License
+
+Add your chosen open-source license here.
